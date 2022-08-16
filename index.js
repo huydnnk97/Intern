@@ -4,83 +4,78 @@ const AWS = require("aws-sdk");
 
 app.use(express.json());
 const awsConfig = {
-    "region": "a",
+    "region": "us-west-2",
     "endpoint": "http://dynamodb.us-west-2.amazonaws.com",
-    "accessKeyId": "a", "secretAccessKey": "a"
+    "accessKeyId": "AKIAZMS4P7E2QTQUFPSN", "secretAccessKey": "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"
 };
 
 AWS.config.update(awsConfig);
 
 const docClient = new AWS.DynamoDB.DocumentClient();
 
-
-// app.get("/users/:id", (req, res) => {
-
-//     var params = {
-//         TableName: "users",
-//         Key: {
-//             "id": req.params.id
-//         }
-//     };
-//     docClient.get(params).promise().then(response => {
-        
-        
-//         if (response.Item != null) {console.log("333"); return response.Item }
-//         else {console.log("123");return Promise.reject("No item")}
-//     })
-//     // .catch(err=>{console.log(err)})
-//     .then(
-//         (value) => {
-
-//         res.send(value)
-//         },
-//         (error)=>{res.send(error)}
-
-//     )
-
-// });
-app.get("/users/:id", async(req, res) => {
+app.get("/users/:id", async (req, res) => {
     var params = {
         TableName: "users",
         Key: {
             "id": req.params.id
         },
-        
-    };
-    
-    try {
-    const data = await docClient.get(params).promise();
-    if(data.Item!=null) {
-        console.log(data.Item.id);
-        console.log(data.Item.first_name);
-        console.log(data.Item.last_name);
-        res.send(data.Item);
-    }
-    else{
-        res.status(404).send("No Item matched");
 
+    };
+
+    let response = {};
+    try {
+        const data = await docClient.get(params).promise();
+        if (data.Item != null) {
+            response.data = {
+                firstName: data.Item.first_name,
+                lastName: data.Item.last_name
+            };
+        } else {
+            response = {code: 404, error: {message: "Item not found"}};
+        }
+    } catch (err) {
+        response = {
+            code: 500,
+            error: {message: err.message}
+        }
     }
-    }
-    catch(err){
-        if(err.message=="")
-        res.status(500).send(err.message);
+
+    res.status(response.code || 200);
+    if (response.error) {
+        res.send(response.error);
+
+    } else if (response.data) {
+        res.send(response.data);
+
     }
 })
-app.post('/signIn', async (req, res) => {
-
-    
-    var params = {
+app.post('/users/:id', async (req, res) => {
+    const params = {
         TableName: "users",
-        Item:  req.body
+        Item: req.body,
+        ConditionExpression: "attribute_not_exists(id)"
     };
-    try{
+    let response = {};
 
-        const data=await docClient.put(params).promise()
-        res.send("Welcome")
+    try {
+
+        const data = await docClient.put(params).promise()
+        response.data = "Register successfully!"
+    } catch (err) {
+        response = {
+            code: 500,
+            error: {message: err.message}
+        }
     }
-    catch(err){res.status(500).send(err.message)}
+    res.status(response.code || 200);
+    if (response.error) {
+        res.send(response.error);
 
-  })
+    } else if (response.data) {
+        res.send(response.data);
+
+    }
+})
 
 app.delete("/users/:id", async (req, res) => {
 
@@ -88,52 +83,30 @@ app.delete("/users/:id", async (req, res) => {
         TableName: "users",
         Key: {
             "id": req.params.id
-        }
+        },
+        ConditionExpression: "attribute_exists(id)"
     };
+    let response = {};
+
     try {
-        const data = await docClient.get(params).promise();
-        if(data.Item!=null) {
-            console.log(data.Item.id);
-            console.log(data.Item.first_name);
-            console.log(data.Item.last_name);
-            res.send(data.Item);
+        const data2 = await docClient.delete(params).promise()
+        response.data = "Successfully delete"
+    } catch (err) {
+        response = {
+            code: 500,
+            error: {message: err.message}
         }
-        else{
-            
-            res.status(404).send("No Item matched");
-    
-        }
-        }
-        catch(err){
-            
-            res.status(500).send(err.message);
-        }
-    const data2= docClient.delete(params, function (err, data) {
+    }
+    res.status(response.code || 200);
+    if (response.error) {
+        res.send(response.error);
 
-        if (err) {
-            console.log("users::delete::error - " + JSON.stringify(err, null, 2));
-        }
-    });
-    
-    
-    // await docClient.get(params).promise().then(response => {
-    //     if (response.Item != null) {
-    //         res.json(response.Item);
-    //         docClient.delete(params, function (err, data) {
+    } else if (response.data) {
+        res.send(response.data);
 
-    //             if (err) {
-    //                 console.log("users::delete::error - " + JSON.stringify(err, null, 2));
-    //             } else {
-    //                 console.log("users::delete::success");
-    //             }
-    //         });
-    //     }
-    //     else { res.status(404).send("No item") }
-    // }, error => {
-    //     console.error(error);
-    //     res.status(500).send(error);
-    // })
-    // console.log("huy")
+    }
+
+
 })
 
 app.listen(2000)
