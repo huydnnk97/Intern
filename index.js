@@ -4,22 +4,15 @@ const AWS = require("aws-sdk");
 
 app.use(express.json());
 const awsConfig = {
-    "region": "",
+    "region": "us-west-2",
     "endpoint": "http://dynamodb.us-west-2.amazonaws.com",
-    "accessKeyId": "", "secretAccessKey": ""
+    "accessKeyId": "AKIAZMS4P7E2WVYGBWHW", "secretAccessKey": "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"
 };
-const logger = (req, res, next) => {
-    const method = req.method
-    const url = req.url
-    const time = new Date().getFullYear()
-    console.log(method, url, time)
-    next()
-}
 AWS.config.update(awsConfig);
 
 const docClient = new AWS.DynamoDB.DocumentClient();
 
-app.get("/users/:id",logger, async (req, res,next) => {
+app.get("/users/:id", async (req, res) => {
     var params = {
         TableName: "users",
         Key: {
