@@ -8,7 +8,13 @@ const awsConfig = {
     "endpoint": "http://dynamodb.us-west-2.amazonaws.com",
     "accessKeyId": "AKIAZMS4P7E2QTQUFPSN", "secretAccessKey": "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"
 };
-
+const logger = (req, res, next) => {
+    const method = req.method
+    const url = req.url
+    const time = new Date().getFullYear()
+    console.log(method, url, time)
+    next()
+}
 AWS.config.update(awsConfig);
 
 const docClient = new AWS.DynamoDB.DocumentClient();
@@ -50,9 +56,12 @@ app.get("/users/:id", async (req, res) => {
     }
 })
 app.post('/users/:id', async (req, res) => {
+    
     const params = {
         TableName: "users",
-        Item: req.body,
+        Item: {
+            "id":req.body.id,"first_name": req.body.first_name, "last_name": req.body.last_name
+        },
         ConditionExpression: "attribute_not_exists(id)"
     };
     let response = {};
