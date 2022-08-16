@@ -56,7 +56,7 @@ app.get("/users/:id", async (req, res) => {
     }
 })
 app.post('/users/:id', async (req, res) => {
-    
+
     const params = {
         TableName: "users",
         Item: {
@@ -69,7 +69,7 @@ app.post('/users/:id', async (req, res) => {
     try {
 
         const data = await docClient.put(params).promise()
-        response.data = "Register successfully!"
+        response.data = "Register for "+req.body.first_name+" "+req.body.last_name+ " successfully!"
     } catch (err) {
         response = {
             code: 500,
