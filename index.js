@@ -4,9 +4,9 @@ const AWS = require("aws-sdk");
 
 app.use(express.json());
 const awsConfig = {
-    "region": "us-west-2",
+    "region": "",
     "endpoint": "http://dynamodb.us-west-2.amazonaws.com",
-    "accessKeyId": "AKIAZMS4P7E2QTQUFPSN", "secretAccessKey": "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"
+    "accessKeyId": "", "secretAccessKey": ""
 };
 const logger = (req, res, next) => {
     const method = req.method
@@ -19,7 +19,7 @@ AWS.config.update(awsConfig);
 
 const docClient = new AWS.DynamoDB.DocumentClient();
 
-app.get("/users/:id", async (req, res) => {
+app.get("/users/:id",logger, async (req, res,next) => {
     var params = {
         TableName: "users",
         Key: {
@@ -60,7 +60,7 @@ app.post('/users/:id', async (req, res) => {
     const params = {
         TableName: "users",
         Item: {
-            "id":req.body.id,"first_name": req.body.first_name, "last_name": req.body.last_name
+            "id": req.body.id, "first_name": req.body.first_name, "last_name": req.body.last_name
         },
         ConditionExpression: "attribute_not_exists(id)"
     };
@@ -69,7 +69,7 @@ app.post('/users/:id', async (req, res) => {
     try {
 
         const data = await docClient.put(params).promise()
-        response.data = "Register for "+req.body.first_name+" "+req.body.last_name+ " successfully!"
+        response.data = "Register for " + req.body.first_name + " " + req.body.last_name + " successfully!"
     } catch (err) {
         response = {
             code: 500,
